@@ -351,6 +351,7 @@ def pwa_manifest() -> Dict[str, Any]:
         "orientation": "portrait",
         "background_color": "#0f172a",
         "theme_color": "#1a73e8",
+        "categories": ["finance", "productivity"],
         "icons": [
             {
                 "src": "/icon.svg",
@@ -362,25 +363,18 @@ def pwa_manifest() -> Dict[str, Any]:
     }
 
 
-@app.get("/icon.svg")
-def pwa_icon() -> Response:
-    svg_data = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-      <rect width="512" height="512" rx="112" fill="#1e293b"/>
-      <circle cx="256" cy="256" r="170" fill="#16a34a"/>
-      <text x="256" y="295" font-family="Arial, sans-serif" font-size="120" font-weight="bold" fill="#ffffff" text-anchor="middle">KES</text>
-    </svg>"""
-    return Response(content=svg_data, media_type="image/svg+xml")
-
-
 @app.get("/sw.js")
 def service_worker() -> Response:
     js_code = """
     self.addEventListener('install', (e) => self.skipWaiting());
     self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
-    self.addEventListener('fetch', (e) => {});
+    self.addEventListener('fetch', (e) => {
+        e.respondWith(
+            fetch(e.request).catch(() => caches.match(e.request))
+        );
+    });
     """
     return Response(content=js_code, media_type="application/javascript")
-
 
 @app.get("/", response_class=HTMLResponse)
 def home_screen() -> str:
